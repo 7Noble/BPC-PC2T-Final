@@ -20,6 +20,14 @@ public class SqliteManager {
     private static final String DB_FILE = "employees.db";
     private static final String URL = "jdbc:sqlite:" + DB_FILE;
 
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            // ovladac nedostupny – program pobezi bez SQLite zalohy
+        }
+    }
+
     private SqliteManager() {}
 
     // ── Inicializace ───────────────────────────────────────────────────────────
