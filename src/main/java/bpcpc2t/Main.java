@@ -80,21 +80,22 @@ public class Main {
         System.out.println("    2 – Bezpečnostní specialista");
         int groupChoice = readInt("  Skupina: ");
 
-        String name     = readString("  Jméno:     ");
-        String surname  = readString("  Příjmení:  ");
+        if (groupChoice != 1 && groupChoice != 2) {
+            System.out.println("  Neplatná skupina.\n");
+            return;
+        }
+
+        String name      = readString("  Jméno:     ");
+        String surname   = readString("  Příjmení:  ");
         int    birthYear = readYear("  Rok nar.:  ");
 
         int id = Employee.generateId();
-        Employee employee = switch (groupChoice) {
-            case 1 -> new DataAnalyst(id, name, surname, birthYear);
-            case 2 -> new SecuritySpecialist(id, name, surname, birthYear);
-            default -> { System.out.println("  Neplatná skupina."); yield null; }
-        };
+        Employee employee = (groupChoice == 1)
+                ? new DataAnalyst(id, name, surname, birthYear)
+                : new SecuritySpecialist(id, name, surname, birthYear);
 
-        if (employee != null) {
-            db.addEmployee(employee);
-            System.out.printf("  Zaměstnanec přidán s ID: %d%n%n", id);
-        }
+        db.addEmployee(employee);
+        System.out.printf("  Zaměstnanec přidán s ID: %d%n%n", id);
     }
 
     // ── b) Přidání spolupráce ──────────────────────────────────────────────────
