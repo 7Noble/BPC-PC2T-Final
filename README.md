@@ -44,13 +44,13 @@ Výstupní JAR se vytvoří jako `target/employee-database-1.0-SNAPSHOT.jar`.
 
 ### Spuštění v IntelliJ IDEA
 
-Otevřete projekt, nastavte JDK 17+ a spusťte třídu `cz.vutbr.bpcpc2t.Main`.
+Otevřete projekt, nastavte JDK 17+ a spusťte třídu `bpcpc2t.Main`.
 
 ### Spuštění z příkazové řádky
 
 ```bash
 # Předpoklad: sqlite-jdbc JAR je na classpath
-java -cp "target/employee-database-1.0-SNAPSHOT.jar;path/to/sqlite-jdbc.jar" cz.vutbr.bpcpc2t.Main
+java -cp "target/employee-database-1.0-SNAPSHOT.jar;path/to/sqlite-jdbc.jar" bpcpc2t.Main
 ```
 
 ---
@@ -58,9 +58,10 @@ java -cp "target/employee-database-1.0-SNAPSHOT.jar;path/to/sqlite-jdbc.jar" cz.
 ## Architektura projektu
 
 ```
-src/main/java/cz/vutbr/bpcpc2t/
+src/main/java/bpcpc2t/
 │
 ├── Main.java                          # Vstupní bod, konzolové menu
+├── EmployeeDatabase.java              # Správa databáze (implements EmployeeRepository)
 │
 ├── model/
 │   ├── CooperationLevel.java          # Enum: BAD | AVERAGE | GOOD
@@ -71,30 +72,120 @@ src/main/java/cz/vutbr/bpcpc2t/
 │   ├── DataAnalyst.java               # Konkrétní skupina – Datový analytik
 │   └── SecuritySpecialist.java        # Konkrétní skupina – Bezpečnostní specialista
 │
-├── service/
-│   └── EmployeeDatabase.java          # Správa databáze (implements EmployeeRepository)
-│
 └── storage/
     ├── FileManager.java               # Uložení/načtení zaměstnance do/ze souboru
     └── SqliteManager.java             # Záloha a obnova dat přes JDBC/SQLite
 ```
 
-### Diagram závislostí
+### Diagram tříd
 
+```mermaid
+classDiagram
+    direction LR
+
+    class SkillExecutor {
+        <<interface>>
+        +executeSkill(repo) void
+        +getSkillDescription() String
+    }
+
+    class EmployeeRepository {
+        <<interface>>
+        +findById(id) Employee
+        +getAllEmployees() List
+    }
+
+    class Employee {
+        <<abstract>>
+        -int id
+        -String name
+        -String surname
+        -int birthYear
+        -List~Cooperation~ cooperations
+        +getDominantCooperationLevel() CooperationLevel
+        +getAverageCooperationScore() double
+        +addCooperation(c) void
+        +removeCooperationWith(id) void
+        +getGroupName()* String
+        +getTypeName()* String
+        +create(type, ...)$ Employee
+    }
+
+    class DataAnalyst {
+        +executeSkill(repo) void
+    }
+
+    class SecuritySpecialist {
+        +calculateRiskScore() double
+        +executeSkill(repo) void
+    }
+
+    class EmployeeDatabase {
+        -List~Employee~ employees
+        +addEmployee(e) void
+        +removeEmployee(id) boolean
+        +addCooperation(...) boolean
+        +removeCooperation(...) boolean
+        +updateEmployee(...) boolean
+        +getOverallDominantLevel() CooperationLevel
+        +getEmployeeWithMostConnections() Employee
+    }
+
+    class Cooperation {
+        -int colleagueId
+        -CooperationLevel level
+    }
+
+    class CooperationLevel {
+        <<enumeration>>
+        BAD
+        AVERAGE
+        GOOD
+        +getScore() int
+    }
+
+    SkillExecutor <|.. Employee
+    Employee <|-- DataAnalyst
+    Employee <|-- SecuritySpecialist
+    EmployeeRepository <|.. EmployeeDatabase
+    Employee "1" o-- "*" Cooperation : obsahuje
+    Cooperation --> CooperationLevel
+    EmployeeDatabase "1" o-- "*" Employee : spravuje
+    DataAnalyst ..> EmployeeRepository : využívá
+    SecuritySpecialist ..> EmployeeRepository : využívá
 ```
-SkillExecutor  EmployeeRepository
-     ▲                ▲
-     │                │
-  Employee      EmployeeDatabase
-     ▲
-     ├── DataAnalyst
-     └── SecuritySpecialist
 
-Employee  ←uses─  EmployeeRepository   (při executeSkill)
-EmployeeDatabase  ─implements─  EmployeeRepository
+Rozhraní `EmployeeRepository` záměrně zamezuje cyklické závislosti – metoda `executeSkill` přijímá abstrakci, nikoli konkrétní `EmployeeDatabase`.
+
+### Tok dat při běhu programu
+
+```mermaid
+flowchart LR
+    subgraph START ["Spuštění"]
+        DB1[("employees.db")]
+        DB1 -->|loadAll| INIT["initDatabase()"]
+        INIT --> MEM
+    end
+
+    MEM[("LinkedList&lt;Employee&gt;<br/>v paměti")]
+
+    subgraph RUNTIME ["Za běhu (menu)"]
+        USER(["Uživatel"])
+        USER -.->|"1–8, 11, 12"| MEM
+        MEM -.->|"výpis, statistiky"| USER
+        MEM -->|"9 – uložení"| FILE["employee_X.emp"]
+        FILE -->|"10 – načtení"| MEM
+    end
+
+    subgraph EXIT ["Ukončení (volba 0)"]
+        MEM -->|saveAll| DB2[("employees.db")]
+    end
+
+    style MEM fill:#fff4d6,stroke:#c5a600,stroke-width:2px
+    style DB1 fill:#d6e8ff,stroke:#1e6fbf
+    style DB2 fill:#d6e8ff,stroke:#1e6fbf
+    style FILE fill:#e1f5d6,stroke:#4a8f1e
 ```
-
-Rozhraní `EmployeeRepository` záměrně zamezuje cyklické závislosti mezi vrstvou `model` a `service` – metoda `executeSkill` přijímá abstrakci, nikoli konkrétní `EmployeeDatabase`.
 
 ---
 
@@ -191,7 +282,7 @@ Výsledné skóre je na škále **0 – ~100**. Faktor expozice penalizuje zamě
 
 ## Popis funkcionalit menu
 
-Po spuštění se zobrazí konzolové menu s volbami `0`–`10`:
+Po spuštění se zobrazí konzolové menu s volbami `0`–`12`:
 
 ```
  1. Přidání zaměstnance
@@ -204,7 +295,33 @@ Po spuštění se zobrazí konzolové menu s volbami `0`–`10`:
  8. Počet zaměstnanců ve skupinách
  9. Uložení zaměstnance do souboru
 10. Načtení zaměstnance ze souboru
+11. Odebrání spolupráce
+12. Úprava zaměstnance
  0. Uložit a ukončit
+```
+
+### Mapa funkcionalit
+
+```mermaid
+mindmap
+  root((Menu))
+    Správa zaměstnanců
+      1 — Přidání
+      3 — Odebrání s kaskádou
+      4 — Detail dle ID
+      12 — Úprava údajů
+    Spolupráce
+      2 — Přidání vazby
+      11 — Odebrání vazby
+    Analýza
+      5 — Skupinová dovednost
+      6 — Abecední výpis
+      7 — Statistiky
+      8 — Počty ve skupinách
+    Persistence
+      9 — Uložení do souboru
+      10 — Načtení ze souboru
+      0 — Uložit do SQLite a ukončit
 ```
 
 ### 1 – Přidání zaměstnance
@@ -248,6 +365,14 @@ Uloží jednoho zaměstnance do textového `.emp` souboru (viz [Souborová seria
 ### 10 – Načtení zaměstnance ze souboru
 
 Načte zaměstnance z `.emp` souboru. Pokud zaměstnanec se stejným ID již v databázi existuje, je přepsán.
+
+### 11 – Odebrání spolupráce
+
+Po zadání ID zaměstnance a ID kolegy odstraní jednu konkrétní vazbu. Pokud záznam neexistuje, vrátí chybu (zaměstnanec ani druhý nezůstane dotčen).
+
+### 12 – Úprava zaměstnance
+
+Umožňuje změnit jméno, příjmení nebo rok narození existujícího záznamu. Prázdný vstup u libovolného pole znamená „ponechat původní hodnotu". Neplatný rok narození se ignoruje a původní hodnota zůstává.
 
 ### 0 – Uložit a ukončit
 
