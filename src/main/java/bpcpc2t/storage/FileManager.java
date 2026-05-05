@@ -7,31 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Správce souborů pro ukládání a načítání jednotlivých zaměstnanců.
- *
- * Formát souboru (prostý text, UTF-8):
- * <pre>
- * TYPE:DataAnalyst
- * ID:1
- * NAME:Jan
- * SURNAME:Novák
- * BIRTHYEAR:1990
- * COOPERATION:2:GOOD
- * COOPERATION:5:BAD
- * </pre>
- */
 public class FileManager {
 
     private FileManager() {}
 
-    /**
-     * Uloží zaměstnance do textového souboru.
-     *
-     * @param employee zaměstnanec k uložení
-     * @param filePath cesta k souboru
-     * @throws IOException při chybě zápisu
-     */
     public static void saveEmployee(Employee employee, String filePath) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
@@ -54,14 +33,6 @@ public class FileManager {
         }
     }
 
-    /**
-     * Načte zaměstnance z textového souboru.
-     *
-     * @param filePath cesta k souboru
-     * @return načtený zaměstnanec
-     * @throws IOException          při chybě čtení
-     * @throws IllegalStateException pokud soubor má neplatný formát
-     */
     public static Employee loadEmployee(String filePath) throws IOException {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8))) {

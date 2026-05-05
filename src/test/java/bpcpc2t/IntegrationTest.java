@@ -8,10 +8,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Komplexny integracny test vsetkej funkcionality.
- * Nepouziva menu - volame priamo metody.
- */
 public class IntegrationTest {
 
     private static int passed = 0;
@@ -45,8 +41,6 @@ public class IntegrationTest {
         cleanup();
         if (failed > 0) System.exit(1);
     }
-
-    // ================ Tests ================
 
     static void testEmployeeIdGeneration() {
         section("ID generation");
@@ -90,7 +84,6 @@ public class IntegrationTest {
         check(one.getCooperations().size() == 2, "Employee 1 has 2 cooperations");
         check(one.hasCooperationWith(2), "Employee 1 cooperates with 2");
 
-        // Test update via re-add (replaces)
         db.addCooperation(1, 2, CooperationLevel.BAD);
         check(one.getCooperations().size() == 2, "Re-add does not duplicate");
         CooperationLevel level = one.getCooperations().stream()
@@ -158,7 +151,6 @@ public class IntegrationTest {
         check(db.getEmployeeWithMostConnections().getId() == 1, "Most connections: emp 1");
         check(db.getTotalCooperationsCount() == 5, "Total = 5");
 
-        // Empty db dominant should be null
         EmployeeDatabase empty = new EmployeeDatabase();
         check(empty.getOverallDominantLevel() == null, "Empty dominant = null");
         check(empty.getEmployeeWithMostConnections() == null, "Empty most connections = null");
@@ -178,13 +170,13 @@ public class IntegrationTest {
         resetIdCounter();
         EmployeeDatabase db = makeBasicDb();
         Map<String, List<Employee>> grouped = db.getAlphabeticByGroup();
-        // Group ordering should be alphabetical (TreeMap)
+
         List<String> groupNames = grouped.keySet().stream().toList();
         check(groupNames.get(0).equals("Bezpečnostní specialista"),
                 "First group alphabetically: Bezpečnostní specialista");
         check(groupNames.get(1).equals("Datový analytik"),
                 "Second group: Datový analytik");
-        // Within each group, sorted by surname
+
         List<Employee> sec = grouped.get("Bezpečnostní specialista");
         check(sec.get(0).getSurname().equals("Cerny"), "Cerny before Dvorakova");
         check(sec.get(1).getSurname().equals("Dvorakova"), "Dvorakova second");
@@ -196,10 +188,7 @@ public class IntegrationTest {
         section("DataAnalyst skill (with match)");
         resetIdCounter();
         EmployeeDatabase db = makeBasicDb();
-        // 1 -> 2, 3, 4
-        // 2 -> 3, 4 (shares 2 colleagues with 1: namely 3 and 4)
-        // 3 -> 4 (shares 1 colleague with 1: namely 4)
-        // 4 -> nobody
+
         db.addCooperation(1, 2, CooperationLevel.GOOD);
         db.addCooperation(1, 3, CooperationLevel.GOOD);
         db.addCooperation(1, 4, CooperationLevel.GOOD);
@@ -218,7 +207,6 @@ public class IntegrationTest {
         resetIdCounter();
         EmployeeDatabase db = makeBasicDb();
         db.addCooperation(1, 2, CooperationLevel.GOOD);
-        // Employee 2 has NO other colleagues, so 0 overlap
 
         DataAnalyst a = (DataAnalyst) db.findById(1);
         String out = capture(() -> a.executeSkill(db));
@@ -237,12 +225,10 @@ public class IntegrationTest {
         double score = s.calculateRiskScore();
         check(score > 0 && score < 100, "Score in range (0-100)");
 
-        // Verify skill output prints something reasonable
         String out = capture(() -> s.executeSkill(db));
         check(out.contains("RIZIKOVÉ SKÓRE"), "Risk score header");
         check(out.contains("Hodnocení"), "Has rating label");
 
-        // Empty cooperations
         EmployeeDatabase db2 = new EmployeeDatabase();
         db2.addEmployee(new SecuritySpecialist(Employee.generateId(), "Solo", "Solo", 1990));
         SecuritySpecialist solo = (SecuritySpecialist) db2.findById(5);
@@ -275,7 +261,6 @@ public class IntegrationTest {
         check(loaded.hasCooperationWith(3), "Has coop with 3");
         check(loaded.hasCooperationWith(4), "Has coop with 4");
 
-        // Verify level preservation
         CooperationLevel lvl = loaded.getCooperations().stream()
                 .filter(c -> c.getColleagueId() == 4).findFirst().get().getLevel();
         check(lvl == CooperationLevel.BAD, "Level preserved (BAD)");
@@ -295,7 +280,6 @@ public class IntegrationTest {
         SqliteManager.initDatabase();
         check(SqliteManager.saveAll(db.getAllEmployees()), "SQLite save success");
 
-        // Reset state and load
         resetIdCounter();
         List<Employee> loaded = SqliteManager.loadAll();
         check(loaded.size() == 4, "Loaded 4 employees");
@@ -307,7 +291,6 @@ public class IntegrationTest {
         Employee four = loaded.stream().filter(e -> e.getId() == 4).findFirst().orElse(null);
         check(four != null && four.hasCooperationWith(1), "4->1 preserved");
 
-        // Verify next ID is correct
         Employee newOne = new DataAnalyst(Employee.generateId(), "X", "X", 1990);
         check(newOne.getId() == 5, "Next ID after load = 5");
 
@@ -340,8 +323,6 @@ public class IntegrationTest {
         check(e2 instanceof SecuritySpecialist, "Factory creates SecuritySpecialist");
     }
 
-    // ================ Helpers ================
-
     static EmployeeDatabase makeBasicDb() {
         EmployeeDatabase db = new EmployeeDatabase();
         db.addEmployee(new DataAnalyst(Employee.generateId(), "Jan", "Novak", 1990));
@@ -352,7 +333,7 @@ public class IntegrationTest {
     }
 
     static void resetIdCounter() {
-        // Hack: reset by introspection. In practice we just create a new "world".
+
         try {
             java.lang.reflect.Field f = Employee.class.getDeclaredField("nextId");
             f.setAccessible(true);

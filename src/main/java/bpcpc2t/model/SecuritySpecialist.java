@@ -2,19 +2,6 @@ package bpcpc2t.model;
 
 import java.util.List;
 
-/**
- * Bezpečnostní specialista – specializace zaměstnance.
- *
- * Dovednost: Vypočítá rizikové skóre na základě počtu spolupracovníků
- * a průměrné kvality spolupráce.
- *
- * Algoritmus rizikového skóre:
- *   – Každá spolupráce přispívá váhovaným rizikem: BAD=3, AVERAGE=2, GOOD=1
- *   – Celkové riziko = součet vah všech spoluprací
- *   – Penalizace za rozsah = ln(počet + 1)  (více kontaktů = větší expozice)
- *   – Skóre = (průměrná váha) × (1 + ln(počet + 1)) × (10 / 3)
- *   – Rozsah výsledku: cca 0 – 100 (čím vyšší, tím rizikovější)
- */
 public class SecuritySpecialist extends Employee {
 
     public SecuritySpecialist(int id, String name, String surname, int birthYear) {
@@ -36,11 +23,6 @@ public class SecuritySpecialist extends Employee {
         return "Výpočet rizikového skóre spolupráce";
     }
 
-    /**
-     * Vypočítá a vypíše rizikové skóre zaměstnance.
-     *
-     * @param repository není v této dovednosti využíváno (skóre závisí jen na vlastních datech)
-     */
     @Override
     public void executeSkill(EmployeeRepository repository) {
         System.out.println("  ── Výsledek dovednosti: Bezpečnostní specialista ──");
@@ -78,7 +60,6 @@ public class SecuritySpecialist extends Employee {
         System.out.printf("  Hodnocení: %s%n", getRiskLabel(riskScore));
     }
 
-    /** Vrátí textové hodnocení rizikového skóre. */
     public double calculateRiskScore() {
         List<Cooperation> cooperations = getCooperations();
         if (cooperations.isEmpty()) return 0.0;

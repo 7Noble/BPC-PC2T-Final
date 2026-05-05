@@ -5,10 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Abstraktní třída reprezentující zaměstnance technologické firmy.
- * Každý zaměstnanec patří do skupiny a má specializovanou dovednost.
- */
 public abstract class Employee implements SkillExecutor {
 
     private static int nextId = 1;
@@ -18,7 +14,6 @@ public abstract class Employee implements SkillExecutor {
     private String surname;
     private int birthYear;
 
-    /** Dynamická datová struktura – seznam spolupracovníků */
     private final List<Cooperation> cooperations;
 
     protected Employee(int id, String name, String surname, int birthYear) {
@@ -29,8 +24,6 @@ public abstract class Employee implements SkillExecutor {
         this.cooperations = new ArrayList<>();
         updateNextId(id);
     }
-
-    // ── ID management ──────────────────────────────────────────────────────────
 
     public static int generateId() {
         return nextId++;
@@ -50,15 +43,9 @@ public abstract class Employee implements SkillExecutor {
         };
     }
 
-    // ── Abstraktní metody ──────────────────────────────────────────────────────
-
-    /** Vrátí název skupiny zaměstnance. */
     public abstract String getGroupName();
 
-    /** Vrátí typ skupiny jako řetězec pro serializaci (např. "DataAnalyst"). */
     public abstract String getTypeName();
-
-    // ── Spolupráce ─────────────────────────────────────────────────────────────
 
     public void addCooperation(Cooperation cooperation) {
         cooperations.removeIf(c -> c.getColleagueId() == cooperation.getColleagueId());
@@ -77,11 +64,6 @@ public abstract class Employee implements SkillExecutor {
         return cooperations;
     }
 
-    // ── Statistiky ─────────────────────────────────────────────────────────────
-
-    /**
-     * Vrátí převažující úroveň spolupráce, nebo null pokud nejsou žádné záznamy.
-     */
     public CooperationLevel getDominantCooperationLevel() {
         if (cooperations.isEmpty()) return null;
 
@@ -94,9 +76,6 @@ public abstract class Employee implements SkillExecutor {
                 .orElse(null);
     }
 
-    /**
-     * Vrátí průměrné skóre kvality spolupráce (BAD=1, AVERAGE=2, GOOD=3).
-     */
     public double getAverageCooperationScore() {
         if (cooperations.isEmpty()) return 0.0;
         return cooperations.stream()
@@ -104,8 +83,6 @@ public abstract class Employee implements SkillExecutor {
                 .average()
                 .orElse(0.0);
     }
-
-    // ── Základní informace ─────────────────────────────────────────────────────
 
     public int getId() { return id; }
     public String getName() { return name; }
@@ -116,8 +93,6 @@ public abstract class Employee implements SkillExecutor {
     public void setName(String name) { this.name = name; }
     public void setSurname(String surname) { this.surname = surname; }
     public void setBirthYear(int birthYear) { this.birthYear = birthYear; }
-
-    // ── Výpis ──────────────────────────────────────────────────────────────────
 
     public String getBasicInfo() {
         return String.format(

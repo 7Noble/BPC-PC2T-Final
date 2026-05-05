@@ -4,12 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Datový analytik – specializace zaměstnance.
- *
- * Dovednost: Určí, se kterým spolupracovníkem má analytik nejvíce
- * společných spolupracovníků (průnik kolegů).
- */
 public class DataAnalyst extends Employee {
 
     public DataAnalyst(int id, String name, String surname, int birthYear) {
@@ -31,10 +25,6 @@ public class DataAnalyst extends Employee {
         return "Nalezení spolupracovníka s nejvíce společnými kolegy";
     }
 
-    /**
-     * Dovednost: pro každého z vlastních spolupracovníků spočítá průnik
-     * jejich kolegů s vlastními kolegy a vypíše nejlepší shodu.
-     */
     @Override
     public void executeSkill(EmployeeRepository repository) {
         List<Cooperation> myCooperations = getCooperations();
@@ -44,7 +34,6 @@ public class DataAnalyst extends Employee {
             return;
         }
 
-        // Množina ID vlastních spolupracovníků
         Set<Integer> myColleagueIds = myCooperations.stream()
                 .map(Cooperation::getColleagueId)
                 .collect(Collectors.toSet());
@@ -56,13 +45,11 @@ public class DataAnalyst extends Employee {
             Employee colleague = repository.findById(c.getColleagueId());
             if (colleague == null) continue;
 
-            // Kolegové tohoto spolupracovníka (bez mě samotného)
             Set<Integer> theirIds = colleague.getCooperations().stream()
                     .map(Cooperation::getColleagueId)
                     .filter(id -> id != this.getId())
                     .collect(Collectors.toSet());
 
-            // Průnik: kolegové, kteří jsou zároveň i moji kolegové
             long commonCount = theirIds.stream()
                     .filter(myColleagueIds::contains)
                     .count();

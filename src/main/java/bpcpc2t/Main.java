@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * Vstupní bod aplikace – Databázový systém zaměstnanců.
- */
 public class Main {
 
     private static final EmployeeDatabase db = new EmployeeDatabase();
@@ -22,7 +19,6 @@ public class Main {
         System.out.println("║   Databázový systém zaměstnanců  v1.7    ║");
         System.out.println("╚══════════════════════════════════════════╝");
 
-        // l) Načtení dat z SQLite při startu
         loadFromSqlite();
 
         boolean running = true;
@@ -52,8 +48,6 @@ public class Main {
         scanner.close();
     }
 
-    // ── Menu ───────────────────────────────────────────────────────────────────
-
     private static void printMenu() {
         System.out.println("──────────────────────────────────────────");
         System.out.println(" 1. Přidání zaměstnance");
@@ -71,8 +65,6 @@ public class Main {
         System.out.println(" 0. Uložit a ukončit");
         System.out.println("──────────────────────────────────────────");
     }
-
-    // ── a) Přidání zaměstnance ─────────────────────────────────────────────────
 
     private static void addEmployee() {
         System.out.println("  Vyberte skupinu:");
@@ -98,8 +90,6 @@ public class Main {
         System.out.printf("  Zaměstnanec přidán s ID: %d%n%n", id);
     }
 
-    // ── b) Přidání spolupráce ──────────────────────────────────────────────────
-
     private static void addCooperation() {
         int employeeId  = readInt("  ID zaměstnance:   ");
         int colleagueId = readInt("  ID spolupracovníka: ");
@@ -122,8 +112,6 @@ public class Main {
         }
     }
 
-    // ── c) Odebrání zaměstnance ────────────────────────────────────────────────
-
     private static void removeEmployee() {
         int id = readInt("  ID zaměstnance k odebrání: ");
         boolean removed = db.removeEmployee(id);
@@ -131,8 +119,6 @@ public class Main {
                 ? "  Zaměstnanec odebrán včetně všech vazeb.\n"
                 : "  Zaměstnanec s ID " + id + " nebyl nalezen.\n");
     }
-
-    // ── d) Vyhledání dle ID ────────────────────────────────────────────────────
 
     private static void findEmployeeById() {
         int id = readInt("  ID zaměstnance: ");
@@ -143,8 +129,6 @@ public class Main {
             System.out.println(emp.getDetailedInfo());
         }
     }
-
-    // ── e) Spuštění dovednosti ─────────────────────────────────────────────────
 
     private static void runSkill() {
         int id = readInt("  ID zaměstnance: ");
@@ -157,8 +141,6 @@ public class Main {
         emp.executeSkill(db);
         System.out.println();
     }
-
-    // ── f) Abecední výpis dle skupin ───────────────────────────────────────────
 
     private static void printAlphabeticList() {
         if (db.isEmpty()) {
@@ -176,8 +158,6 @@ public class Main {
         });
         System.out.println();
     }
-
-    // ── g) Statistiky ─────────────────────────────────────────────────────────
 
     private static void printStatistics() {
         System.out.println("  ── Statistiky databáze ──");
@@ -204,8 +184,6 @@ public class Main {
         System.out.println();
     }
 
-    // ── h) Počet zaměstnanců ve skupinách ─────────────────────────────────────
-
     private static void printGroupCounts() {
         System.out.println("  ── Počet zaměstnanců ve skupinách ──");
         Map<String, Long> counts = db.getCountByGroup();
@@ -218,8 +196,6 @@ public class Main {
         System.out.printf("  %-30s : %d%n", "CELKEM", db.size());
         System.out.println();
     }
-
-    // ── i) Uložení zaměstnance do souboru ─────────────────────────────────────
 
     private static void saveEmployeeToFile() {
         int id = readInt("  ID zaměstnance: ");
@@ -242,15 +218,12 @@ public class Main {
         }
     }
 
-    // ── j) Načtení zaměstnance ze souboru ─────────────────────────────────────
-
     private static void loadEmployeeFromFile() {
         String filePath = readString("  Cesta k souboru: ");
 
         try {
             Employee loaded = FileManager.loadEmployee(filePath);
 
-            // Pokud zaměstnanec s tímto ID již existuje, přepíšeme jej
             if (db.findById(loaded.getId()) != null) {
                 db.removeEmployee(loaded.getId());
                 System.out.printf("  Existující záznam ID=%d byl přepsán.%n", loaded.getId());
@@ -263,8 +236,6 @@ public class Main {
         }
     }
 
-    // ── k) Odebrání spolupráce ─────────────────────────────────────────────────
-
     private static void removeCooperation() {
         int employeeId  = readInt("  ID zaměstnance:   ");
         int colleagueId = readInt("  ID spolupracovníka: ");
@@ -273,8 +244,6 @@ public class Main {
                 ? "  Spolupráce odebrána.\n"
                 : "  Záznam nenalezen – zkontrolujte obě ID.\n");
     }
-
-    // ── l) Úprava zaměstnance ──────────────────────────────────────────────────
 
     private static void editEmployee() {
         int id = readInt("  ID zaměstnance: ");
@@ -316,8 +285,6 @@ public class Main {
         System.out.println("  Zaměstnanec aktualizován.\n");
     }
 
-    // ── m/n) SQLite ────────────────────────────────────────────────────────────
-
     private static void loadFromSqlite() {
         try {
             SqliteManager.initDatabase();
@@ -343,8 +310,6 @@ public class Main {
             System.out.println("\n  [DB] SQLite není dostupné – data nebyla zálohována.");
         }
     }
-
-    // ── Pomocné metody pro vstup ───────────────────────────────────────────────
 
     private static int readInt(String prompt) {
         while (true) {

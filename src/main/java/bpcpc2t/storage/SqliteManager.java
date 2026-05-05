@@ -6,15 +6,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Správce SQLite databáze – záloha a obnova všech dat.
- *
- * Schéma:
- * <pre>
- *   employees   (id INTEGER PK, name TEXT, surname TEXT, birth_year INTEGER, type TEXT)
- *   cooperations(employee_id INTEGER, colleague_id INTEGER, level TEXT, PK(employee_id, colleague_id))
- * </pre>
- */
 public class SqliteManager {
 
     private static final String DB_FILE = "employees.db";
@@ -24,17 +15,12 @@ public class SqliteManager {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
-            // ovladac nedostupny – program pobezi bez SQLite zalohy
+
         }
     }
 
     private SqliteManager() {}
 
-    // ── Inicializace ───────────────────────────────────────────────────────────
-
-    /**
-     * Vytvoří tabulky, pokud neexistují.
-     */
     public static void initDatabase() {
         try (Connection conn = DriverManager.getConnection(URL);
              Statement stmt = conn.createStatement()) {
@@ -64,14 +50,6 @@ public class SqliteManager {
         }
     }
 
-    // ── Uložení ────────────────────────────────────────────────────────────────
-
-    /**
-     * Uloží všechna data do SQLite (přepíše stávající záznamy).
-     *
-     * @param employees seznam všech zaměstnanců
-     * @return true při úspěchu
-     */
     public static boolean saveAll(List<Employee> employees) {
         try (Connection conn = DriverManager.getConnection(URL)) {
             conn.setAutoCommit(false);
@@ -116,19 +94,11 @@ public class SqliteManager {
         }
     }
 
-    // ── Načtení ────────────────────────────────────────────────────────────────
-
-    /**
-     * Načte všechna data ze SQLite databáze.
-     *
-     * @return seznam zaměstnanců (prázdný seznam při chybě nebo prázdné DB)
-     */
     public static List<Employee> loadAll() {
         List<Employee> result = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(URL)) {
 
-            // Načti zaměstnance
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT * FROM employees ORDER BY id")) {
 
@@ -145,7 +115,6 @@ public class SqliteManager {
                 }
             }
 
-            // Načti spolupráce
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT * FROM cooperations")) {
 
