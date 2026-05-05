@@ -1,4 +1,4 @@
-package bpcpc2t.service;
+package bpcpc2t;
 
 import bpcpc2t.model.*;
 
@@ -77,6 +77,22 @@ public class EmployeeDatabase implements EmployeeRepository {
         return true;
     }
 
+    public boolean removeCooperation(int employeeId, int colleagueId) {
+        Employee emp = findById(employeeId);
+        if (emp == null || !emp.hasCooperationWith(colleagueId)) return false;
+        emp.removeCooperationWith(colleagueId);
+        return true;
+    }
+
+    public boolean updateEmployee(int id, String name, String surname, int birthYear) {
+        Employee emp = findById(id);
+        if (emp == null) return false;
+        emp.setName(name);
+        emp.setSurname(surname);
+        emp.setBirthYear(birthYear);
+        return true;
+    }
+
     // ── Výpisy ─────────────────────────────────────────────────────────────────
 
     /**
@@ -90,7 +106,7 @@ public class EmployeeDatabase implements EmployeeRepository {
                         .thenComparing(Employee::getName))
                 .collect(Collectors.groupingBy(
                         Employee::getGroupName,
-                        LinkedHashMap::new,
+                        TreeMap::new,
                         Collectors.toList()
                 ));
     }

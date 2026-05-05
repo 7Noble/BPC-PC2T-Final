@@ -1,7 +1,6 @@
 package bpcpc2t;
 
 import bpcpc2t.model.*;
-import bpcpc2t.service.EmployeeDatabase;
 import bpcpc2t.storage.FileManager;
 import bpcpc2t.storage.SqliteManager;
 
@@ -43,6 +42,8 @@ public class Main {
                 case 8  -> printGroupCounts();
                 case 9  -> saveEmployeeToFile();
                 case 10 -> loadEmployeeFromFile();
+                case 11 -> removeCooperation();
+                case 12 -> editEmployee();
                 case 0  -> { saveToSqliteAndExit(); running = false; }
                 default -> System.out.println("  Neplatná volba, zkuste znovu.\n");
             }
@@ -65,6 +66,8 @@ public class Main {
         System.out.println(" 8. Počet zaměstnanců ve skupinách");
         System.out.println(" 9. Uložení zaměstnance do souboru");
         System.out.println("10. Načtení zaměstnance ze souboru");
+        System.out.println("11. Odebrání spolupráce");
+        System.out.println("12. Úprava zaměstnance");
         System.out.println(" 0. Uložit a ukončit");
         System.out.println("──────────────────────────────────────────");
     }
@@ -79,7 +82,7 @@ public class Main {
 
         String name     = readString("  Jméno:     ");
         String surname  = readString("  Příjmení:  ");
-        int    birthYear = readInt("  Rok nar.:  ");
+        int    birthYear = readYear("  Rok nar.:  ");
 
         int id = Employee.generateId();
         Employee employee = switch (groupChoice) {
@@ -259,7 +262,60 @@ public class Main {
         }
     }
 
-    // ── k/l) SQLite ────────────────────────────────────────────────────────────
+    // ── k) Odebrání spolupráce ─────────────────────────────────────────────────
+
+    private static void removeCooperation() {
+        int employeeId  = readInt("  ID zaměstnance:   ");
+        int colleagueId = readInt("  ID spolupracovníka: ");
+        boolean ok = db.removeCooperation(employeeId, colleagueId);
+        System.out.println(ok
+                ? "  Spolupráce odebrána.\n"
+                : "  Záznam nenalezen – zkontrolujte obě ID.\n");
+    }
+
+    // ── l) Úprava zaměstnance ──────────────────────────────────────────────────
+
+    private static void editEmployee() {
+        int id = readInt("  ID zaměstnance: ");
+        Employee emp = db.findById(id);
+        if (emp == null) {
+            System.out.println("  Zaměstnanec s ID " + id + " nebyl nalezen.\n");
+            return;
+        }
+
+        System.out.printf("  Aktuální data: %s %s, nar. %d%n",
+                emp.getName(), emp.getSurname(), emp.getBirthYear());
+        System.out.println("  (Ponechte prázdné pro zachování stávající hodnoty)");
+
+        System.out.print("  Jméno     [" + emp.getName() + "]: ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) name = emp.getName();
+
+        System.out.print("  Příjmení  [" + emp.getSurname() + "]: ");
+        String surname = scanner.nextLine().trim();
+        if (surname.isEmpty()) surname = emp.getSurname();
+
+        System.out.print("  Rok nar.  [" + emp.getBirthYear() + "]: ");
+        String yearInput = scanner.nextLine().trim();
+        int birthYear = emp.getBirthYear();
+        if (!yearInput.isEmpty()) {
+            try {
+                int parsed = Integer.parseInt(yearInput);
+                if (parsed >= 1900 && parsed <= 2010) {
+                    birthYear = parsed;
+                } else {
+                    System.out.println("  Neplatný rok – zachována původní hodnota.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("  Neplatný vstup – zachována původní hodnota.");
+            }
+        }
+
+        db.updateEmployee(id, name, surname, birthYear);
+        System.out.println("  Zaměstnanec aktualizován.\n");
+    }
+
+    // ── m/n) SQLite ────────────────────────────────────────────────────────────
 
     private static void loadFromSqlite() {
         try {
@@ -307,6 +363,14 @@ public class Main {
             String line = scanner.nextLine().trim();
             if (!line.isEmpty()) return line;
             System.out.println("  Pole nesmí být prázdné.");
+        }
+    }
+
+    private static int readYear(String prompt) {
+        while (true) {
+            int year = readInt(prompt);
+            if (year >= 1900 && year <= 2010) return year;
+            System.out.println("  Zadejte reálný rok narození (1900–2010).");
         }
     }
 }

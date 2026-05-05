@@ -74,12 +74,12 @@ public class DataAnalyst extends Employee {
         }
 
         System.out.println("  ── Výsledek dovednosti: Datový analytik ──");
-        if (bestMatch != null && bestCount >= 0) {
+        if (bestMatch != null && bestCount > 0) {
             System.out.printf("  Spolupracovník s nejvíce společnými kolegy:%n");
             System.out.printf("    %s (ID: %d)%n", bestMatch.getFullName(), bestMatch.getId());
             System.out.printf("    Společných spolupracovníků: %d%n", bestCount);
         } else {
-            System.out.println("  Žádní vhodní spolupracovníci pro porovnání nebyli nalezeni.");
+            System.out.println("  Žádný ze spolupracovníků nemá společné kolegy s vámi.");
         }
     }
 }
