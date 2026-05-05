@@ -102,7 +102,7 @@ public class FileManager {
                 throw new IllegalStateException("Neplatný formát souboru: " + filePath);
             }
 
-            Employee employee = createEmployee(type, id, name, surname, birthYear);
+            Employee employee = Employee.create(type, id, name, surname, birthYear);
             for (Cooperation c : cooperations) {
                 employee.addCooperation(c);
             }
@@ -112,11 +112,4 @@ public class FileManager {
         }
     }
 
-    private static Employee createEmployee(String type, int id, String name, String surname, int birthYear) {
-        return switch (type) {
-            case "DataAnalyst"        -> new DataAnalyst(id, name, surname, birthYear);
-            case "SecuritySpecialist" -> new SecuritySpecialist(id, name, surname, birthYear);
-            default -> throw new IllegalArgumentException("Neznámý typ zaměstnance: " + type);
-        };
-    }
 }

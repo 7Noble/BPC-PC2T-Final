@@ -52,23 +52,19 @@ public class SecuritySpecialist extends Employee {
             return;
         }
 
-        int badCount = 0;
-        int averageCount = 0;
-        int goodCount = 0;
-        int totalWeight = 0;
-
+        int badCount = 0, averageCount = 0, goodCount = 0;
         for (Cooperation c : cooperations) {
             switch (c.getLevel()) {
-                case BAD     -> { badCount++;     totalWeight += 3; }
-                case AVERAGE -> { averageCount++; totalWeight += 2; }
-                case GOOD    -> { goodCount++;    totalWeight += 1; }
+                case BAD     -> badCount++;
+                case AVERAGE -> averageCount++;
+                case GOOD    -> goodCount++;
             }
         }
 
-        int count = cooperations.size();
-        double avgWeight       = (double) totalWeight / count;          // 1.0 – 3.0
-        double exposureFactor  = 1.0 + Math.log(count + 1);            // roste s počtem kontaktů
-        double riskScore       = avgWeight * exposureFactor * (10.0 / 3.0); // normalizace ~0–100
+        int count             = cooperations.size();
+        double avgWeight      = (double)(badCount * 3 + averageCount * 2 + goodCount) / count;
+        double exposureFactor = 1.0 + Math.log(count + 1);
+        double riskScore      = calculateRiskScore();
 
         System.out.printf("  Celkem spolupracovníků : %d%n", count);
         System.out.printf("    Špatná spolupráce    : %d%n", badCount);

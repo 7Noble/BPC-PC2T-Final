@@ -42,6 +42,14 @@ public abstract class Employee implements SkillExecutor {
         }
     }
 
+    public static Employee create(String typeName, int id, String name, String surname, int birthYear) {
+        return switch (typeName) {
+            case "DataAnalyst"        -> new DataAnalyst(id, name, surname, birthYear);
+            case "SecuritySpecialist" -> new SecuritySpecialist(id, name, surname, birthYear);
+            default -> throw new IllegalArgumentException("Neznámý typ zaměstnance: " + typeName);
+        };
+    }
+
     // ── Abstraktní metody ──────────────────────────────────────────────────────
 
     /** Vrátí název skupiny zaměstnance. */
@@ -124,7 +132,7 @@ public abstract class Employee implements SkillExecutor {
         sb.append(String.format("  Zaměstnanec #%d%n", id));
         sb.append("══════════════════════════════════════════\n");
         sb.append(String.format("  Jméno:       %s %s%n", name, surname));
-        sb.append(String.format("  Rok narození:%d%n", birthYear));
+        sb.append(String.format("  Rok narození: %d%n", birthYear));
         sb.append(String.format("  Skupina:     %s%n", getGroupName()));
         sb.append(String.format("  Dovednost:   %s%n", getSkillDescription()));
         sb.append(String.format("  Spolupracovníků: %d%n", cooperations.size()));

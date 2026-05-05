@@ -131,7 +131,7 @@ public class SqliteManager {
                     int    birthYear = rs.getInt("birth_year");
                     String type      = rs.getString("type");
 
-                    Employee emp = createEmployee(type, id, name, surname, birthYear);
+                    Employee emp = Employee.create(type, id, name, surname, birthYear);
                     result.add(emp);
                     Employee.updateNextId(id);
                 }
@@ -163,11 +163,4 @@ public class SqliteManager {
         return result;
     }
 
-    private static Employee createEmployee(String type, int id, String name, String surname, int birthYear) {
-        return switch (type) {
-            case "DataAnalyst"        -> new DataAnalyst(id, name, surname, birthYear);
-            case "SecuritySpecialist" -> new SecuritySpecialist(id, name, surname, birthYear);
-            default -> throw new IllegalArgumentException("Neznámý typ: " + type);
-        };
-    }
 }
